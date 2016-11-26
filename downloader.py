@@ -4,6 +4,8 @@
 
 import tweepy
 import csv
+import argparse
+import psycopg2
 import config
 import logging
 import sys
