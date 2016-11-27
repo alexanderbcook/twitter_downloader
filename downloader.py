@@ -6,9 +6,9 @@ import tweepy
 import csv
 import argparse
 import psycopg2
-import config
 import logging
-import sys
+import config
+from util import encode
 
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
@@ -54,9 +54,10 @@ def get_all_tweets(user_name):
 
     # Flatten tweets into data carrying list
     if args.output == 'csv':
+        # Write to a CSV file. The name of the file will just be the name of the user.
         data = [tweet for tweet in tweets]
 
-        logging.debug('Writing tweets to %s.csv' % args.user_name)
+        logging.debug('Writing tweets to data/%s.csv' % args.user_name)
 
         csvFile = open('%s.csv' % (args.user_name), 'a')
         csvWriter = csv.writer(csvFile)
@@ -65,7 +66,8 @@ def get_all_tweets(user_name):
             csvWriter.writerow([datum.created_at, encode(datum.text), datum.id, encode(datum.user.location)])
 
     elif args.output == 'db':
-
+        # Write to database specified in config.py file.
+        # Note that this will not work if the twitter schema has not been created yet.
         conn = psycopg2.connect(config.conn_string)
         cursor = conn.cursor()
         logging.debug('Connected database and writing tweets to %s' % config.conn_string)
@@ -84,4 +86,4 @@ if __name__ == '__main__':
     auth.set_access_token(config.access_token, config.access_secret)
     api = tweepy.API(auth)
     logging.debug('Twitter API successfully authorized.')
-    get_all_tweets(str(sys.argv[1]))
+    get_all_tweets(args.user_name)
